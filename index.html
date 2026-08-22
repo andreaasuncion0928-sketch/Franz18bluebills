@@ -53,7 +53,7 @@
         .screen.active { opacity: 1; visibility: visible; z-index: 10; }
         .content-wrap { max-width: 500px; width: 100%; margin: auto; z-index: 1; position: relative; }
 
-        /* Transparent Content Boxes - 20% Opacity (Highly See-Through) */
+        /* Transparent Content Boxes - 20% Opacity */
         .content-box-light, .content-box-dark {
             background: rgba(255, 255, 255, 0.2); 
             padding: 3rem 1.5rem;
@@ -97,9 +97,6 @@
         .btn-colored { border-color: var(--light-lavender); color: var(--white); background: rgba(171, 133, 184, 0.4); }
         .btn-colored:hover { background: rgba(171, 133, 184, 0.7); }
 
-        /* Music Button Specific Tweaks */
-        .btn-music { padding: 8px 20px; font-size: 0.6rem; text-transform: none; letter-spacing: 0.1em; margin-top: 1rem; border-color: rgba(255,255,255,0.3); }
-
         /* Menu Elements */
         .menu-list { display: flex; flex-direction: column; gap: 1.2rem; margin-top: 1.5rem; }
         .menu-item { cursor: pointer; background: none; border: none; font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--white); }
@@ -117,7 +114,12 @@
         /* Interactive Card */
         .interactive-card { border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); padding: 1.5rem; margin-top: 1.5rem; cursor: pointer; text-align: left; color: var(--white); border-radius: 8px; }
         .interactive-content { display: none; padding-top: 1.2rem; margin-top: 1.2rem; border-top: 1px solid rgba(255,255,255,0.3); }
-        .interactive-content.active { display: block; }
+        .interactive-content.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -138,11 +140,13 @@
             <h1 class="serif huge" style="margin-bottom: -0.5rem; text-shadow: 0 4px 20px rgba(0,0,0,0.7);">eighteen.</h1>
             <h2 class="script" style="color: var(--light-lavender); text-shadow: 0 4px 20px rgba(0,0,0,0.7);">Franz</h2>
             <p class="sans" style="margin-top: 2rem; margin-bottom: 1rem; letter-spacing: 0.1em; font-size: 0.8rem; text-transform: uppercase; text-shadow: 0 2px 10px rgba(0,0,0,0.7);">You are invited.</p>
-            <button class="btn-glass" onclick="nav('welcome')">Enter &rarr;</button>
+            
+            <!-- Click this to play music AND enter the site -->
+            <button class="btn-glass" onclick="enterAndPlay()">🎵 Play my favorite song</button>
         </div>
     </section>
 
-    <!-- 02 WELCOME NOTE & MUSIC BUTTON -->
+    <!-- 02 WELCOME NOTE -->
     <section id="welcome" class="screen">
         <div class="bg-layer"></div>
         <div class="overlay-60"></div>
@@ -151,12 +155,9 @@
             <h2 class="script" style="color: var(--light-lavender); margin-bottom: 1.5rem;">Finally, 18! ✨</h2>
             
             <p class="sans detail-text">It feels crazy to think that 18 years have already passed. From little moments to big memories, every year has been part of the story that brought me here.</p>
-            <p class="sans detail-text">Now, a new part of my story begins—and I’d love to celebrate it with you.</p>
+            <p class="sans detail-text">Now, a new season begins—and I’d love to celebrate it with you.</p>
             
-            <!-- Music Player Button -->
-            <button id="musicBtn" class="btn-glass btn-music" onclick="toggleMusic()">🎵 Play my favorite song</button>
-            
-            <p class="serif" style="font-size: 1.1rem; font-style: italic; color: var(--white); margin-top: 1.5rem; font-weight: bold;">Come celebrate, have fun,<br>and make a memory with me!</p>
+            <p class="serif" style="font-size: 1.1rem; font-style: italic; color: var(--white); margin-top: 2rem; font-weight: bold;">Come celebrate, have fun,<br>and make a memory with me!</p>
             
             <button class="btn-glass btn-colored" style="margin-top: 1.5rem;" onclick="nav('menu')">Continue &rarr;</button>
         </div>
@@ -287,20 +288,30 @@
             content.classList.toggle('active');
         }
 
-        // Music Play/Pause Logic
+        // Music Play Logic
         let isPlaying = false;
         const bgMusic = document.getElementById('bgMusic');
-        const musicBtn = document.getElementById('musicBtn');
 
         function toggleMusic() {
             if (isPlaying) {
                 bgMusic.pause();
-                musicBtn.innerHTML = "🎵 Play my favorite song";
             } else {
-                bgMusic.play();
-                musicBtn.innerHTML = "⏸ Pause song";
+                let playPromise = bgMusic.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log("Audio failed to play:", error);
+                    });
+                }
             }
             isPlaying = !isPlaying;
+        }
+
+        // Play music AND enter the site seamlessly
+        function enterAndPlay() {
+            nav('welcome'); // Move screen instantly
+            if (!isPlaying) {
+                toggleMusic();
+            }
         }
 
         // Countdown Logic
